@@ -8,8 +8,6 @@
  * license agreement from NVIDIA CORPORATION is strictly prohibited.
  */
 
-#include "isaac_ros_apriltag/apriltag_node.hpp"
-
 #include <memory>
 #include <string>
 #include <vector>
@@ -24,6 +22,15 @@
 #include "message_filters/sync_policies/approximate_time.h"
 #include "nvAprilTags.h"
 #include "rclcpp/logger.hpp"
+
+#include "eigen3/Eigen/Core"
+#include "image_transport/camera_subscriber.hpp"
+#include "isaac_ros_apriltag/msg/april_tag_detection.hpp"
+#include "isaac_ros_apriltag/msg/april_tag_detection_array.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/camera_info.hpp"
+#include "sensor_msgs/msg/image.hpp"
+#include "tf2_msgs/msg/tf_message.hpp"
 
 namespace
 {
@@ -53,6 +60,37 @@ namespace isaac_ros
 {
 namespace apriltag
 {
+
+class AprilTagNode : public rclcpp::Node
+{
+public:
+  explicit AprilTagNode(const rclcpp::NodeOptions options = rclcpp::NodeOptions());
+
+  ~AprilTagNode();
+
+private:
+  void onCameraFrame(
+    const sensor_msgs::msg::Image::ConstSharedPtr & msg_img,
+    const sensor_msgs::msg::CameraInfo::ConstSharedPtr & msg_ci);
+
+  const std::string tag_family_;
+  const double tag_edge_size_;
+  const int max_tags_;
+  const int queue_size_;
+  const int32_t max_interval_duration_;  // Unit in seconds
+
+  message_filters::Subscriber<sensor_msgs::msg::Image> image_sub_;
+  message_filters::Subscriber<sensor_msgs::msg::CameraInfo> camera_info_sub_;
+
+  const rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr pub_tf_;
+  const rclcpp::Publisher<isaac_ros_apriltag::msg::AprilTagDetectionArray>::SharedPtr
+    pub_detections_;
+
+  struct AprilTagsImpl;
+  std::unique_ptr<AprilTagsImpl> impl_;
+};
+
+//end class definition
 
 struct AprilTagNode::AprilTagsImpl
 {
@@ -161,7 +199,7 @@ AprilTagNode::AprilTagNode(rclcpp::NodeOptions options)
   pub_tf_(
     create_publisher<tf2_msgs::msg::TFMessage>("tf", rclcpp::QoS(100))),
   pub_detections_(
-    create_publisher<isaac_ros_apriltag_interfaces::msg::AprilTagDetectionArray>(
+    create_publisher<isaac_ros_apriltag::msg::AprilTagDetectionArray>(
       "tag_detections", rclcpp::QoS(1))),
   impl_(std::make_unique<AprilTagsImpl>())
 {
@@ -214,14 +252,14 @@ void AprilTagNode::onCameraFrame(
   }
 
   // Parse detections into published protos
-  isaac_ros_apriltag_interfaces::msg::AprilTagDetectionArray msg_detections;
+  isaac_ros_apriltag::msg::AprilTagDetectionArray msg_detections;
   msg_detections.header = msg_img->header;
   tf2_msgs::msg::TFMessage tfs;
   for (uint32_t i = 0; i < num_detections; i++) {
     const nvAprilTagsID_t & detection = impl_->tags[i];
 
     // detection
-    isaac_ros_apriltag_interfaces::msg::AprilTagDetection msg_detection;
+    isaac_ros_apriltag::msg::AprilTagDetection msg_detection;
     msg_detection.family = tag_family_;
     msg_detection.id = detection.id;
 

@@ -23,6 +23,23 @@ set(CUDA_MIN_VERSION "10.2")
 execute_process(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
 message( STATUS "Architecture: ${ARCHITECTURE}" )
 
+set(msg_files
+        "msg/AprilTagDetection.msg"
+        "msg/AprilTagDetectionArray.msg"
+  )
+
+# custom isaac apriltag interfaces
+find_package(geometry_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+  DEPENDENCIES geometry_msgs std_msgs
+)
+
+ament_export_dependencies(rosidl_default_runtime)
+
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
@@ -57,18 +74,7 @@ target_link_libraries(apriltag_node nvapriltags ${CUDA_LIBRARIES})
 rclcpp_components_register_nodes(apriltag_node "isaac_ros::apriltag::AprilTagNode")
 set(node_plugins "${node_plugins}isaac_ros::apriltag::AprilTagNode;$<TARGET_FILE:apriltag_node>\n")
 
-# isaac_ros_apriltag executable
-ament_auto_add_executable(${PROJECT_NAME}
-  src/apriltag_main.cpp
-)
-ament_target_dependencies(${PROJECT_NAME} isaac_ros_image_proc)
-target_link_libraries(${PROJECT_NAME} apriltag_node vpi)  # explicit link VPI to workaround inherited dependency
-
-install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
+rosidl_target_interfaces(apriltag_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -27,24 +27,22 @@ def generate_launch_description():
         output='screen'
     )
 
-    apriltag_exe = Node(
-        package='isaac_ros_apriltag',
-        executable='isaac_ros_apriltag',
-        name='apriltag_exe',
+    apriltag_node = ComposableNode(
+      package='isaac_ros_apriltag',
+      plugin='isaac_ros::apriltag::AprilTagNode',
+      name='apriltag',
+      parameters=[{'size': 0.16,
+                   'max_tags': 64}])
+
+    apriltag_container = ComposableNodeContainer(
+      package='rclcpp_components',
+      name='apriltag_container',
+      namespace='',
+      executable='component_container_mt',
+      composable_node_descriptions=[
+          apriltag_node,
+      ],
+      output='screen'
     )
 
-    realsense_camera_node = Node(
-        package='realsense2_camera',
-        node_executable='realsense2_camera_node',
-        parameters=[{
-            'color_height': 1080,
-            'color_width': 1920,
-            'enable_infra1': False,
-            'enable_infra2': False,
-            'enable_depth': False,
-        }],
-        remappings=[('/color/image_raw', '/image'),
-                    ('/color/camera_info', '/camera_info')]
-    )
-
-    return launch.LaunchDescription([rectify_container, apriltag_exe, realsense_camera_node])
+    return launch.LaunchDescription([rectify_container, apriltag_container])
