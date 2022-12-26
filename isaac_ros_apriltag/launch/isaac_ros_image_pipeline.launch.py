@@ -15,7 +15,7 @@ from launch_ros.descriptions import ComposableNode
 
 # detect all 36h11 tags
 cfg_36h11 = {
-        'image_transport':'compressed', 
+        'image_transport':'raw', 
         'family':'36h11',
         'size':0.162
     }
@@ -26,11 +26,42 @@ def generate_launch_description():
     cam_yaml_abs = os.path.abspath(os.getcwd())
     cat_path = 'file://' + cam_yaml_abs + cam_yaml
     
+    rectify_node = ComposableNode(
+        package='image_proc',
+        plugin='image_proc::RectifyNode',
+        name='rectify_node',
+    )
+
+    rectify_container = ComposableNodeContainer(
+        name='rectify_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container',
+        composable_node_descriptions=[rectify_node],
+        output='screen'
+    )
+
+    resize_node = ComposableNode(
+        package='image_proc',
+        plugin='image_proc::ResizeNode',
+        name='resize_node',
+        remappings=[('/image', '/image_rect')],
+        parameters=[{'width':768,'height':432, 'scale_width':0.5,'scale_height':0.5}]
+    )
+
+    resize_container = ComposableNodeContainer(
+        name='resize_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container',
+        composable_node_descriptions=[resize_node],
+        output='screen'
+    )
     composable_node = ComposableNode(
         name='apriltag',
         package='isaac_ros_apriltag',
         plugin='isaac_ros::apriltag::AprilTagNode',
-        remappings=[('/camera/image_rect', '/image_rect'),
+        remappings=[('/camera/image_rect', '/resize'),
                     ('/camera/camera_info', '/camera_info')],
         parameters=[cfg_36h11])
 
@@ -47,9 +78,9 @@ def generate_launch_description():
             name='argus',
             package='isaac_ros_argus_camera_mono',
             executable='isaac_ros_argus_camera_mono',
-            remappings=[('/image_raw', '/image_rect')],
+            remappings=[('/image_raw', '/image')],
             parameters=[{'device':0,'sensor':4,'output_encoding':'mono8','camera_info_url':cat_path}]
 
     )
 
-    return launch.LaunchDescription([argus_node,apriltag_container])
+    return launch.LaunchDescription([argus_node,resize_container,rectify_container, apriltag_container])

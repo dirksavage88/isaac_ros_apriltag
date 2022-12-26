@@ -15,7 +15,7 @@ from launch_ros.descriptions import ComposableNode
 
 # detect all 36h11 tags
 cfg_36h11 = {
-        'image_transport':'compressed', 
+        'image_transport':'raw', 
         'family':'36h11',
         'size':0.162
     }
@@ -40,7 +40,6 @@ def generate_launch_description():
         composable_node_descriptions=[rectify_node],
         output='screen'
     )
-
     composable_node = ComposableNode(
         name='apriltag',
         package='isaac_ros_apriltag',
@@ -67,4 +66,4 @@ def generate_launch_description():
 
     )
 
-    return launch.LaunchDescription([argus_node, rectify_container, apriltag_container])
+    return launch.LaunchDescription([argus_node,rectify_container, apriltag_container])
