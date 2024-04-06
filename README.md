@@ -46,9 +46,9 @@ Run the following script in `isaac_ros_common` to build the image and launch the
 You can either provide an optional path to mirror in your host ROS workspace with Isaac ROS packages, which will be made available in the container as `/workspaces/isaac_ros-dev`, or you can setup a new workspace in the container.
 
 ### Docker build notes
-1) You will need to reference the runtime nvidia container on the docker run command. Also for apriltags it is required to pass the device name to the docker container. Additionally it is easier to bind a host workspace with all the ros packages (including isaac ros repos). I have had to add the cuda libs as binds due to them not being included in the docker file. Here is an example docker run command:
+1) You will need to reference the runtime nvidia container on the docker run command. Also for apriltags it is required to pass the device name to the docker container. Additionally it is easier to bind a host workspace with all the ros packages (including isaac ros repos). I have had to add the cuda libs as binds due to them not being included in the docker file. Here is an example docker run command (note you will need to change which workspace you mount depending on where you have your ros repo's):
 
-'sudo docker run --runtime nvidia --rm --privileged --net=host -v /tmp/.X11-unix/:/tmp/.X11-unix/ -v /home/dirksavage/workspaces/isaac_ros-dev/:/workspaces/isaac_ros-dev/ -v /usr/local/cuda-10.2/targets/aarch64-linux/lib/:/usr/local/cuda-10.2/targets/aarch64-linux/lib/ -v /tmp/argus_socket:/tmp/argus_socket -v /usr/src/jetson_multimedia_api/:/usr/src/jetson_multimedia_api/ --device /dev/video0 -e DISPLAY=$DISPLAY -it apriltag_accelerated:v2 /bin/bash'
+'sudo docker run --runtime nvidia --rm --privileged --net=host -v /tmp/.X11-unix/:/tmp/.X11-unix/ -v /workspaces/isaac_ros-dev/:/workspaces/isaac_ros-dev/ -v /usr/local/cuda-10.2/targets/aarch64-linux/lib/:/usr/local/cuda-10.2/targets/aarch64-linux/lib/ -v /tmp/argus_socket:/tmp/argus_socket -v /usr/src/jetson_multimedia_api/:/usr/src/jetson_multimedia_api/ --device /dev/video0 -e DISPLAY=$DISPLAY -it isaac_ros_dev-aarch64:latest /bin/bash'
 
 notice jetson_multimedia bind. You will need to install it on host with 'sudo apt install nvidia-l4t-jetson-multimedia-api'
 
