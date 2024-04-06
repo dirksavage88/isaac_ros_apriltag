@@ -70,6 +70,16 @@ solved by setting update-alternatives "sudo update-alternatives --install /usr/b
 
 "sudo update-alternatives --config python"
 
+6) If you have issues with the following error
+
+   `docker: Error response from daemon: pull access denied for isaac_ros_dev-aarch64, repository does not exist or may require 'docker login': denied: requested access to the resource is denied.`
+
+   Try to run the sample nvidia container runtime workload: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/sample-workload.html
+   `sudo docker run --rm --runtime=nvidia ubuntu nvidia-smi`
+
+7) If you OCI runtime failures, it could be multiple issues, see these fixes: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common/issues/5
+
+
 
 ### Package Dependencies
 - [isaac_ros_common](https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common)
