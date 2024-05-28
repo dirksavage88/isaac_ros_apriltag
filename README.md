@@ -101,6 +101,7 @@ sudo update-alternatives --config python
 
 ### 8) If you OCI runtime failures, it could be multiple issues, see these fixes: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common/issues/5
 
+### 9) Note that there are known issues with the navargs-daemon. I have found that even restarting the service does not solve nvidia argus node failures, but rebooting the jetson does. See: https://forums.developer.nvidia.com/t/nvargus-errors-timeout-and-inevitable-failure-happens-on-4x-different-nanos/175487
 
 ### Package Dependencies
 - [isaac_ros_common](https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common)
